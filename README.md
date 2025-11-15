@@ -1,5 +1,6 @@
 # Daily Report Pipeline
 
+[![CI](https://github.com/Ezcareaga/daily-report-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Ezcareaga/daily-report-pipeline/actions)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-12%20passing-green.svg)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-54%25-yellow.svg)](tests/)
