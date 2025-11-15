@@ -128,3 +128,115 @@ class EmailManager:
             
         except Exception as e:
             raise PipelineError(f"Failed to send email: {e}") from e
+
+    def notify_success(
+        self,
+        date: datetime,
+        attachment_path: Optional[Path] = None,
+        total_amount: Optional[float] = None
+    ) -> bool:
+        """
+        Send success notification.
+        
+        Args:
+            date: Report date
+            attachment_path: Optional file to attach
+            total_amount: Optional total amount processed
+            
+        Returns:
+            bool: True if sent successfully
+        """
+        if not self.enabled:
+            return False
+        
+        subject = self.config.get(
+            'EMAIL', 
+            'asunto_exito', 
+            default='Report Success - {fecha}'
+        ).format(fecha=date.strftime('%Y-%m-%d'))
+        
+        filename = attachment_path.name if attachment_path else "No attachment"
+        
+        body = self.config.get(
+            'EMAIL',
+            'cuerpo_exito',
+            default='<p>Report generated successfully for {fecha}</p><p>File: {archivo}</p>'
+        ).format(
+            fecha=date.strftime('%d/%m/%Y'),
+            archivo=filename
+        )
+        
+        if total_amount is not None:
+            body += f'<br><br><b>Total Amount:</b> {total_amount:,.2f}'
+        
+        return self._send_email(subject, body, self.recipients_success, attachment_path)
+    
+    def notify_no_data(self, date: datetime) -> bool:
+        """
+        Send notification when no data available.
+        
+        Args:
+            date: Report date
+            
+        Returns:
+            bool: True if sent successfully
+        """
+        if not self.enabled:
+            return False
+        
+        subject = self.config.get(
+            'EMAIL',
+            'asunto_sin_datos',
+            default='No Data - {fecha}'
+        ).format(fecha=date.strftime('%Y-%m-%d'))
+        
+        body = self.config.get(
+            'EMAIL',
+            'cuerpo_sin_datos',
+            default='<p>No data available for {fecha}</p>'
+        ).format(fecha=date.strftime('%d/%m/%Y'))
+        
+        return self._send_email(subject, body, self.recipients_error)
+    
+    def notify_error(
+        self,
+        error: Exception,
+        date: datetime,
+        include_traceback: bool = True
+    ) -> bool:
+        """
+        Send error notification.
+        
+        Args:
+            error: Exception that occurred
+            date: Report date
+            include_traceback: Include full traceback
+            
+        Returns:
+            bool: True if sent successfully
+        """
+        if not self.enabled:
+            return False
+        
+        subject = self.config.get(
+            'EMAIL',
+            'asunto_error',
+            default='Error - {fecha}'
+        ).format(fecha=date.strftime('%Y-%m-%d'))
+        
+        error_details = str(error)
+        if include_traceback:
+            import traceback
+            error_details += f'\n\n{traceback.format_exc()}'
+        
+        body = self.config.get(
+            'EMAIL',
+            'cuerpo_error',
+            default='<p>Error occurred on {fecha}</p><p>{error}</p><pre>{traceback}</pre>'
+        ).format(
+            fecha=date.strftime('%d/%m/%Y'),
+            error=error,
+            traceback=error_details
+        )
+        
+        return self._send_email(subject, body, self.recipients_error)

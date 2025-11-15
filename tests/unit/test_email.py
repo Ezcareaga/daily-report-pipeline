@@ -97,3 +97,62 @@ class TestEmailManager:
         assert result is True
         mock_server.login.assert_called_once_with('test@test.com', 'password')
         mock_server.send_message.assert_called_once()
+
+    @patch('src.core.email.smtplib.SMTP')
+    def test_notify_success_without_attachment(self, mock_smtp, mock_config_enabled):
+        from datetime import datetime
+        
+        email = EmailManager(mock_config_enabled)
+        mock_server = Mock()
+        mock_smtp.return_value.__enter__.return_value = mock_server
+        
+        date = datetime(2025, 1, 15)
+        result = email.notify_success(date)
+        
+        assert result is True
+        mock_server.send_message.assert_called_once()
+    
+    @patch('src.core.email.smtplib.SMTP')
+    def test_notify_success_with_amount(self, mock_smtp, mock_config_enabled, tmp_path):
+        from datetime import datetime
+        
+        email = EmailManager(mock_config_enabled)
+        mock_server = Mock()
+        mock_smtp.return_value.__enter__.return_value = mock_server
+        
+        test_file = tmp_path / "report.txt"
+        test_file.write_text("data")
+        
+        date = datetime(2025, 1, 15)
+        result = email.notify_success(date, test_file, 1234.56)
+        
+        assert result is True
+    
+    @patch('src.core.email.smtplib.SMTP')
+    def test_notify_no_data(self, mock_smtp, mock_config_enabled):
+        from datetime import datetime
+        
+        email = EmailManager(mock_config_enabled)
+        mock_server = Mock()
+        mock_smtp.return_value.__enter__.return_value = mock_server
+        
+        date = datetime(2025, 1, 15)
+        result = email.notify_no_data(date)
+        
+        assert result is True
+        mock_server.send_message.assert_called_once()
+    
+    @patch('src.core.email.smtplib.SMTP')
+    def test_notify_error(self, mock_smtp, mock_config_enabled):
+        from datetime import datetime
+        
+        email = EmailManager(mock_config_enabled)
+        mock_server = Mock()
+        mock_smtp.return_value.__enter__.return_value = mock_server
+        
+        date = datetime(2025, 1, 15)
+        error = Exception("Test error")
+        result = email.notify_error(error, date)
+        
+        assert result is True
+        mock_server.send_message.assert_called_once()
