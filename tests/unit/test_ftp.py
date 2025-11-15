@@ -74,3 +74,36 @@ class TestFTPManager:
         
         mock_conn.quit.assert_called_once()
         assert ftp.connection is None
+
+    @patch('src.core.ftp.ftplib.FTP')
+    def test_upload_file_success(self, mock_ftp_class, mock_config_enabled, tmp_path):
+        ftp = FTPManager(mock_config_enabled)
+        mock_conn = Mock()
+        mock_ftp_class.return_value = mock_conn
+        ftp.connect()
+        
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("test data")
+        
+        result = ftp.upload_file(test_file)
+        
+        assert result is True
+        mock_conn.storbinary.assert_called_once()
+    
+    def test_upload_file_not_connected(self, mock_config_enabled, tmp_path):
+        ftp = FTPManager(mock_config_enabled)
+        
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("test")
+        
+        with pytest.raises(PipelineError, match="Not connected"):
+            ftp.upload_file(test_file)
+    
+    def test_upload_file_missing(self, mock_config_enabled, tmp_path):
+        ftp = FTPManager(mock_config_enabled)
+        ftp.connection = Mock()
+        
+        missing_file = tmp_path / "missing.txt"
+        
+        with pytest.raises(PipelineError, match="File not found"):
+            ftp.upload_file(missing_file)

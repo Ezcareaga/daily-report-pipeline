@@ -79,3 +79,38 @@ class FTPManager:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
         self.disconnect()
+
+    def upload_file(self, local_path: Path, remote_filename: Optional[str] = None) -> bool:
+        """
+        Upload file to FTP server.
+        
+        Args:
+            local_path: Path to local file
+            remote_filename: Optional remote filename (uses local name if None)
+            
+        Returns:
+            bool: True if uploaded successfully
+            
+        Raises:
+            PipelineError: If upload fails
+        """
+        if not self.enabled:
+            return False
+        
+        local_path = Path(local_path)
+        
+        if not local_path.exists():
+            raise PipelineError(f"File not found: {local_path}")
+        
+        if not self.connection:
+            raise PipelineError("Not connected to FTP server")
+        
+        filename = remote_filename or local_path.name
+        
+        try:
+            with open(local_path, 'rb') as f:
+                self.connection.storbinary(f'STOR {filename}', f)
+            return True
+            
+        except ftplib.all_errors as e:
+            raise PipelineError(f"Upload failed: {e}") from e
