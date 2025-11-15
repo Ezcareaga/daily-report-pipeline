@@ -99,3 +99,18 @@ class TestExcelGenerator:
         generator.save_workbook(wb, file_path)
         
         assert file_path.exists()
+
+    def test_generate_excel_complete(self, tmp_path):
+        generator = ExcelGenerator()
+        
+        headers = ['ID', 'Name', 'Value']
+        data = [
+            [1, 'First', 100.50],
+            [2, 'Second', 200.75]
+        ]
+        
+        file_path = tmp_path / "complete.xlsx"
+        result_path = generator.generate_excel(data, file_path, headers)
+        
+        assert result_path.exists()
+        assert result_path == file_path

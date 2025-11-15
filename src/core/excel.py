@@ -123,3 +123,26 @@ class ExcelGenerator:
             workbook.save(file_path)
         except Exception as e:
             raise PipelineError(f"Failed to save Excel file: {e}") from e
+
+    def generate_excel(
+        self,
+        data: List[List[Any]],
+        file_path: Path,
+        headers: Optional[List[str]] = None,
+        sheet_name: str = "Reporte"
+    ) -> Path:
+        """
+        Generate Excel file in one step.
+        
+        Args:
+            data: List of rows
+            file_path: Output file path
+            headers: Optional column headers
+            sheet_name: Worksheet name
+            
+        Returns:
+            Path: Path to generated file
+        """
+        wb = self.create_workbook(data, headers, sheet_name)
+        self.save_workbook(wb, file_path)
+        return Path(file_path)
