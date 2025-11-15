@@ -114,3 +114,29 @@ class FTPManager:
             
         except ftplib.all_errors as e:
             raise PipelineError(f"Upload failed: {e}") from e
+
+    def validate_file(self, file_path: Path, max_size_mb: Optional[int] = None) -> bool:
+        """
+        Validate file before upload.
+        
+        Args:
+            file_path: Path to file
+            max_size_mb: Optional maximum file size in MB
+            
+        Returns:
+            bool: True if valid
+            
+        Raises:
+            PipelineError: If validation fails
+        """
+        if not file_path.exists():
+            raise PipelineError(f"File not found: {file_path}")
+        
+        if max_size_mb:
+            size_mb = file_path.stat().st_size / (1024 * 1024)
+            if size_mb > max_size_mb:
+                raise PipelineError(
+                    f"File size ({size_mb:.2f}MB) exceeds limit ({max_size_mb}MB)"
+                )
+        
+        return True

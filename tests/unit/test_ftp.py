@@ -107,3 +107,20 @@ class TestFTPManager:
         
         with pytest.raises(PipelineError, match="File not found"):
             ftp.upload_file(missing_file)
+
+    def test_validate_file_success(self, mock_config_enabled, tmp_path):
+        ftp = FTPManager(mock_config_enabled)
+        
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("x" * 1024)
+        
+        assert ftp.validate_file(test_file, max_size_mb=1) is True
+    
+    def test_validate_file_too_large(self, mock_config_enabled, tmp_path):
+        ftp = FTPManager(mock_config_enabled)
+        
+        large_file = tmp_path / "large.txt"
+        large_file.write_bytes(b"x" * (2 * 1024 * 1024))
+        
+        with pytest.raises(PipelineError, match="exceeds limit"):
+            ftp.validate_file(large_file, max_size_mb=1)
