@@ -15,7 +15,7 @@ class LoggerSetup:
     def configure(
         name: str = "app",
         level: str = "INFO",
-        dog_dir: str = "logs"
+        log_dir: str = "logs"
     ):
 
         """
