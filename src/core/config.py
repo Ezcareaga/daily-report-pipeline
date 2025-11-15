@@ -6,7 +6,7 @@
 
 import configparser
 from pathlib import Path
-from tuping import Optional
+from typing import Optional
 
 class ConfigManager:
     """Handles configuration files operations."""
@@ -33,29 +33,29 @@ class ConfigManager:
         """Get string value from config."""
         try:
             return self.config.get(section, key)
-        except (configparser.NoSectionError, configparser.NoPtionError):
+        except (configparser.NoSectionError, configparser.NoOptionError):
             if default is not None:
                 return default
             raise
 
-def getint(self, section: str, key: str, default: Optional[int] = None) -> int:
-    """get integer value from config."""
-    try: 
-        return self.config.getint(section, key)
-    except (configparser.NoSectionError, configparser.NoOptionError):
-        if default is None:
-            return default
-        raise
+    def getint(self, section: str, key: str, default: Optional[int] = None) -> int:
+        """Get integer value from config."""
+        try:
+            return self.config.getint(section, key)
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            if default is not None:
+                return default
+            raise
 
     def getboolean(self, section: str, key: str, default: Optional[bool] = None) -> bool:
-        """ Get boolean value from config."""
-        try: 
+        """Get boolean value from config."""
+        try:
             return self.config.getboolean(section, key)
         except (configparser.NoSectionError, configparser.NoOptionError):
             if default is not None:
                 return default
             raise
 
-def has_section(self, section: str) -> bool:
-    """Check if section exists."""
-    return self.config.has_section(section)
+    def has_section(self, section: str) -> bool:
+        """Check if section exists."""
+        return self.config.has_section(section)

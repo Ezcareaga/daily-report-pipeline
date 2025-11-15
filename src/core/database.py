@@ -4,11 +4,11 @@
 
 import oracledb 
 from pathlib import Path 
-from typng import Optional, List, Tuple, Any
+from typing import Optional, List, Tuple, Any
 from datetime import datetime 
 
 from .config import ConfigManager 
-from .exceptions import DataBaseError
+from .exceptions import DatabaseError
 
 class DatabaseManager:
     """Handles all database operations"""
@@ -57,7 +57,7 @@ class DatabaseManager:
 
             return True
 
-        except oracledb.Error as e: 
+        except Exception as e: 
             error_msg = f"Database connection failed: {e}"
             raise DatabaseError(error_msg)
 
@@ -71,7 +71,7 @@ class DatabaseManager:
             self.connection.close()
             self.connection = None
 
-    def execute_quuery(self, query: str, params: Optional[dict] = None) -> List[Tuple]:
+    def execute_query(self, query: str, params: Optional[dict] = None) -> List[Tuple]:
         """
         Execute SELECT query and return results.
 

@@ -18,7 +18,8 @@ logs/
 output/
 *.xlsx
 *csv
-*.txt
+
+!.txt
 
 # Base de datos local
 *.db
@@ -36,3 +37,5 @@ htmlcov/
 venv/
 env/
 ENV/
+
+!.env.example
