@@ -6,7 +6,7 @@ import sys
 sys.path.append('.')
 import pytest
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from src.core.email import EmailManager
 from src.core.exceptions import PipelineError
@@ -78,3 +78,22 @@ class TestEmailManager:
         
         with pytest.raises(PipelineError, match="exceeds limit"):
             email.validate_attachment_size(large_file)
+
+    def test_send_email_disabled(self, mock_config_disabled):
+        email = EmailManager(mock_config_disabled)
+        result = email._send_email("Test", "<p>Test</p>", ["test@test.com"])
+        assert result is False
+    
+    @patch('src.core.email.smtplib.SMTP')
+    def test_send_email_success(self, mock_smtp, mock_config_enabled):
+        from unittest.mock import patch
+        
+        email = EmailManager(mock_config_enabled)
+        mock_server = Mock()
+        mock_smtp.return_value.__enter__.return_value = mock_server
+        
+        result = email._send_email("Test Subject", "<p>Body</p>", ["test@test.com"])
+        
+        assert result is True
+        mock_server.login.assert_called_once_with('test@test.com', 'password')
+        mock_server.send_message.assert_called_once()

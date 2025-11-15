@@ -66,3 +66,65 @@ class EmailManager:
             )
         
         return True
+
+    def _send_email(
+        self,
+        subject: str,
+        html_body: str,
+        recipients: List[str],
+        attachment_path: Optional[Path] = None
+    ) -> bool:
+        """
+        Send email with optional attachment.
+        
+        Args:
+            subject: Email subject
+            html_body: HTML body content
+            recipients: List of recipient emails
+            attachment_path: Optional file to attach
+            
+        Returns:
+            bool: True if sent successfully
+            
+        Raises:
+            PipelineError: If sending fails
+        """
+        if not self.enabled:
+            return False
+        
+        if attachment_path:
+            self.validate_attachment_size(attachment_path)
+        
+        try:
+            msg = EmailMessage()
+            msg['From'] = self.sender
+            msg['To'] = ", ".join(recipients)
+            msg['Subject'] = subject
+            
+            msg.set_content("This email requires an HTML-capable client.")
+            msg.add_alternative(html_body, subtype='html')
+            
+            if attachment_path:
+                with open(attachment_path, 'rb') as f:
+                    msg.add_attachment(
+                        f.read(),
+                        maintype='application',
+                        subtype='octet-stream',
+                        filename=attachment_path.name
+                    )
+            
+            if self.use_ssl:
+                with smtplib.SMTP_SSL(self.server, self.port) as server:
+                    if self.password:
+                        server.login(self.sender, self.password)
+                    server.send_message(msg)
+            else:
+                with smtplib.SMTP(self.server, self.port) as server:
+                    if self.password:
+                        server.login(self.sender, self.password)
+                    server.send_message(msg)
+            
+            return True
+            
+        except Exception as e:
+            raise PipelineError(f"Failed to send email: {e}") from e
