@@ -1,0 +1,38 @@
+# Confiugración sensible
+config.ini
+*.env
+.env.*
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Logs 
+*.log
+logs/
+
+# Archivos de salida
+output/
+*.xlsx
+*csv
+*.txt
+
+# Base de datos local
+*.db
+*.sqlite
+
+# IDEs
+.vscode/
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Virtual Enviroument
+venv/
+env/
+ENV/
