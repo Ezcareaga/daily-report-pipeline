@@ -86,3 +86,17 @@ class TestDateRangeReprocessor:
         
         with pytest.raises(PipelineError, match="Start date must be"):
             reprocessor._calculate_date_range(start, end)
+
+    def test_generate_date_list(self, mock_config, temp_report_path):
+        from datetime import datetime
+        reprocessor = DateRangeReprocessor(mock_config, temp_report_path)
+        
+        start = datetime(2025, 1, 1)
+        end = datetime(2025, 1, 3)
+        
+        dates = reprocessor._generate_date_list(start, end)
+        
+        assert len(dates) == 3
+        assert dates[0] == datetime(2025, 1, 1)
+        assert dates[1] == datetime(2025, 1, 2)
+        assert dates[2] == datetime(2025, 1, 3)

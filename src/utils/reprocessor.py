@@ -80,3 +80,23 @@ class DateRangeReprocessor:
             raise PipelineError("Start date must be <= end date")
         
         return (end_date - start_date).days + 1
+
+    def _generate_date_list(self, start_date: datetime, end_date: datetime) -> list[datetime]:
+        """
+        Generate list of dates in range.
+        
+        Args:
+            start_date: Start date
+            end_date: End date
+            
+        Returns:
+            list: List of datetime objects
+        """
+        dates = []
+        current = start_date
+        
+        while current <= end_date:
+            dates.append(current)
+            current += timedelta(days=1)
+        
+        return dates
