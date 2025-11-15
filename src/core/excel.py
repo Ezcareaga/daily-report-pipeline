@@ -57,3 +57,69 @@ class ExcelGenerator:
                 return '#,##0.00'
             else:
                 return '#,##0.' + '0' * self.decimals
+
+    def create_workbook(
+        self,
+        data: List[List[Any]],
+        headers: Optional[List[str]] = None,
+        sheet_name: str = "Reporte"
+    ) -> Workbook:
+        """
+        Create Excel workbook from data.
+        
+        Args:
+            data: List of rows (each row is a list of values)
+            headers: Optional column headers
+            sheet_name: Name for the worksheet
+            
+        Returns:
+            Workbook: openpyxl Workbook object
+        """
+        wb = Workbook()
+        ws = wb.active
+        ws.title = sheet_name
+        
+        current_row = 1
+        num_format = self.get_number_format_string()
+        
+        if headers:
+            for col_idx, header in enumerate(headers, start=1):
+                cell = ws.cell(row=current_row, column=col_idx)
+                cell.value = header
+                cell.font = Font(bold=True)
+            current_row += 1
+        
+        for row_data in data:
+            for col_idx, value in enumerate(row_data, start=1):
+                cell = ws.cell(row=current_row, column=col_idx)
+                
+                if isinstance(value, (int, float)):
+                    cell.value = value
+                    cell.number_format = num_format
+                elif isinstance(value, datetime):
+                    cell.value = value
+                    cell.number_format = 'YYYY-MM-DD HH:MM:SS'
+                else:
+                    cell.value = str(value) if value is not None else ''
+            
+            current_row += 1
+        
+        return wb
+    
+    def save_workbook(self, workbook: Workbook, file_path: Path) -> None:
+        """
+        Save workbook to file.
+        
+        Args:
+            workbook: openpyxl Workbook
+            file_path: Path where to save
+            
+        Raises:
+            PipelineError: If save fails
+        """
+        try:
+            file_path = Path(file_path)
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            workbook.save(file_path)
+        except Exception as e:
+            raise PipelineError(f"Failed to save Excel file: {e}") from e
