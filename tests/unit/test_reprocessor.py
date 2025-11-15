@@ -59,3 +59,30 @@ class TestDateRangeReprocessor:
         
         with pytest.raises(PipelineError, match="Config file not found"):
             reprocessor.validate_environment()
+
+    def test_calculate_date_range_valid(self, mock_config, temp_report_path):
+        from datetime import datetime
+        reprocessor = DateRangeReprocessor(mock_config, temp_report_path)
+        
+        start = datetime(2025, 1, 1)
+        end = datetime(2025, 1, 5)
+        
+        assert reprocessor._calculate_date_range(start, end) == 5
+    
+    def test_calculate_date_range_same_day(self, mock_config, temp_report_path):
+        from datetime import datetime
+        reprocessor = DateRangeReprocessor(mock_config, temp_report_path)
+        
+        date = datetime(2025, 1, 1)
+        
+        assert reprocessor._calculate_date_range(date, date) == 1
+    
+    def test_calculate_date_range_invalid(self, mock_config, temp_report_path):
+        from datetime import datetime
+        reprocessor = DateRangeReprocessor(mock_config, temp_report_path)
+        
+        start = datetime(2025, 1, 5)
+        end = datetime(2025, 1, 1)
+        
+        with pytest.raises(PipelineError, match="Start date must be"):
+            reprocessor._calculate_date_range(start, end)

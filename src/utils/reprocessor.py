@@ -61,3 +61,22 @@ class DateRangeReprocessor:
             raise PipelineError(f"Config file not found: {self.config_path}")
         
         return True
+
+    def _calculate_date_range(self, start_date: datetime, end_date: datetime) -> int:
+        """
+        Calculate total days in range.
+        
+        Args:
+            start_date: Start date
+            end_date: End date
+            
+        Returns:
+            int: Total days including both dates
+            
+        Raises:
+            PipelineError: If start_date > end_date
+        """
+        if start_date > end_date:
+            raise PipelineError("Start date must be <= end date")
+        
+        return (end_date - start_date).days + 1
