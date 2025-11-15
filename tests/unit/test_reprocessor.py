@@ -100,3 +100,58 @@ class TestDateRangeReprocessor:
         assert dates[0] == datetime(2025, 1, 1)
         assert dates[1] == datetime(2025, 1, 2)
         assert dates[2] == datetime(2025, 1, 3)
+
+    def test_reprocess_range_success(self, mock_config, temp_report_path):
+        from datetime import datetime
+        reprocessor = DateRangeReprocessor(mock_config, temp_report_path)
+        
+        processed_dates = []
+        def mock_processor(date):
+            processed_dates.append(date)
+        
+        start = datetime(2025, 1, 1)
+        end = datetime(2025, 1, 3)
+        
+        result = reprocessor.reprocess_range(start, end, mock_processor)
+        
+        assert result.total == 3
+        assert result.successful == 3
+        assert result.failed == 0
+        assert len(processed_dates) == 3
+    
+    def test_reprocess_range_with_failures(self, mock_config, temp_report_path):
+        from datetime import datetime
+        reprocessor = DateRangeReprocessor(mock_config, temp_report_path)
+        
+        call_count = 0
+        def failing_processor(date):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 2:
+                raise Exception("Simulated failure")
+        
+        start = datetime(2025, 1, 1)
+        end = datetime(2025, 1, 3)
+        
+        result = reprocessor.reprocess_range(start, end, failing_processor)
+        
+        assert result.total == 3
+        assert result.successful == 2
+        assert result.failed == 1
+    
+    def test_reprocess_range_dry_run(self, mock_config, temp_report_path):
+        from datetime import datetime
+        reprocessor = DateRangeReprocessor(mock_config, temp_report_path)
+        
+        processed = []
+        def mock_processor(date):
+            processed.append(date)
+        
+        start = datetime(2025, 1, 1)
+        end = datetime(2025, 1, 3)
+        
+        result = reprocessor.reprocess_range(start, end, mock_processor, dry_run=True)
+        
+        assert result.total == 3
+        assert result.skipped == 3
+        assert len(processed) == 0

@@ -100,3 +100,47 @@ class DateRangeReprocessor:
             current += timedelta(days=1)
         
         return dates
+
+    def reprocess_range(
+        self, 
+        start_date: datetime, 
+        end_date: datetime,
+        processor_callback,
+        dry_run: bool = False
+    ) -> ProcessResult:
+        """
+        Reprocess date range.
+        
+        Args:
+            start_date: Start date
+            end_date: End date
+            processor_callback: Function to process each date
+            dry_run: If True, simulate without executing
+            
+        Returns:
+            ProcessResult with statistics
+        """
+        self.validate_environment()
+        dates = self._generate_date_list(start_date, end_date)
+        
+        successful = 0
+        failed = 0
+        skipped = 0
+        
+        for date in dates:
+            if dry_run:
+                skipped += 1
+                continue
+            
+            try:
+                processor_callback(date)
+                successful += 1
+            except Exception:
+                failed += 1
+        
+        return ProcessResult(
+            total=len(dates),
+            successful=successful,
+            failed=failed,
+            skipped=skipped
+        )
