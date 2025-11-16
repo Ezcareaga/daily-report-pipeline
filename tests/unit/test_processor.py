@@ -73,3 +73,51 @@ class TestReportProcessor:
         date = datetime(2025, 1, 15)
         
         assert processor.check_data_exists(date) is False
+
+    def test_generate_report_success(self, mock_components, tmp_path):
+        from datetime import datetime
+        
+        config, db, email, excel, ftp = mock_components
+        db.execute_query.return_value = [
+            (1, 'Test', 100.50),
+            (2, 'Another', 200.75)
+        ]
+        
+        processor = ReportProcessor(config, db, email, excel, ftp)
+        output = tmp_path / "report.xlsx"
+        date = datetime(2025, 1, 15)
+        
+        count = processor.generate_report(date, output, ['ID', 'Name', 'Value'])
+        
+        assert count == 2
+        excel.generate_excel.assert_called_once()
+    
+    def test_generate_report_no_data(self, mock_components, tmp_path):
+        from datetime import datetime
+        
+        config, db, email, excel, ftp = mock_components
+        db.execute_query.return_value = []
+        
+        processor = ReportProcessor(config, db, email, excel, ftp)
+        output = tmp_path / "report.xlsx"
+        date = datetime(2025, 1, 15)
+        
+        count = processor.generate_report(date, output)
+        
+        assert count == 0
+        excel.generate_excel.assert_not_called()
+    
+    def test_generate_report_dry_run(self, mock_components, tmp_path):
+        from datetime import datetime
+        
+        config, db, email, excel, ftp = mock_components
+        config.getboolean.return_value = True  # dry_run = True
+        
+        processor = ReportProcessor(config, db, email, excel, ftp)
+        output = tmp_path / "report.xlsx"
+        date = datetime(2025, 1, 15)
+        
+        count = processor.generate_report(date, output)
+        
+        assert count == 0
+        db.execute_query.assert_not_called()

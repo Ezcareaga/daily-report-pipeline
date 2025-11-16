@@ -85,3 +85,41 @@ class ReportProcessor:
             return exists
         except Exception as e:
             raise PipelineError(f"Failed to check data: {e}") from e
+
+    def generate_report(
+        self,
+        date: datetime,
+        output_path: Path,
+        headers: Optional[List[str]] = None
+    ) -> int:
+        """
+        Generate report file from database.
+        
+        Args:
+            date: Report date
+            output_path: Where to save the file
+            headers: Optional column headers
+            
+        Returns:
+            int: Number of records processed
+            
+        Raises:
+            PipelineError: If generation fails
+        """
+        if self.dry_run:
+            return 0
+        
+        try:
+            query = "SELECT * FROM reports WHERE report_date = :date"
+            results = self.db.execute_query(query, {'date': date})
+            
+            if not results:
+                return 0
+            
+            data = [list(row) for row in results]
+            self.excel.generate_excel(data, output_path, headers)
+            
+            return len(data)
+            
+        except Exception as e:
+            raise PipelineError(f"Report generation failed: {e}") from e
