@@ -1,9 +1,11 @@
-# Automated Report Pipeline
+# Daily Report Pipeline
 
 [![CI](https://github.com/Ezcareaga/daily-report-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Ezcareaga/daily-report-pipeline/actions)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-66%20passing-success.svg)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-84%25-yellow.svg)](tests/)
+
+**[🇪🇸 Leer en Español](README.es.md)**
 
 Professional automated report generation system with comprehensive testing and CI/CD pipeline.
 
