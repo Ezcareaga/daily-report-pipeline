@@ -66,3 +66,22 @@ class ReportProcessor:
         self.excel = excel_generator
         self.ftp = ftp_manager
         self.dry_run = config.getboolean('MODO', 'dry_run', default=False)
+
+    def check_data_exists(self, date: datetime) -> bool:
+        """
+        Check if data exists for given date.
+        
+        Args:
+            date: Date to check
+            
+        Returns:
+            bool: True if data exists
+            
+        Raises:
+            PipelineError: If check fails
+        """
+        try:
+            exists, count = self.db.check_data_exists(date)
+            return exists
+        except Exception as e:
+            raise PipelineError(f"Failed to check data: {e}") from e

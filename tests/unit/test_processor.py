@@ -50,3 +50,26 @@ class TestReportProcessor:
         assert processor.excel == excel
         assert processor.ftp == ftp
         assert processor.dry_run is False
+
+    def test_check_data_exists_true(self, mock_components):
+        from datetime import datetime
+        
+        config, db, email, excel, ftp = mock_components
+        db.check_data_exists.return_value = (True, 100)
+        
+        processor = ReportProcessor(config, db, email, excel, ftp)
+        date = datetime(2025, 1, 15)
+        
+        assert processor.check_data_exists(date) is True
+        db.check_data_exists.assert_called_once_with(date)
+    
+    def test_check_data_exists_false(self, mock_components):
+        from datetime import datetime
+        
+        config, db, email, excel, ftp = mock_components
+        db.check_data_exists.return_value = (False, 0)
+        
+        processor = ReportProcessor(config, db, email, excel, ftp)
+        date = datetime(2025, 1, 15)
+        
+        assert processor.check_data_exists(date) is False
