@@ -121,3 +121,54 @@ class TestReportProcessor:
         
         assert count == 0
         db.execute_query.assert_not_called()
+
+    def test_process_success_complete(self, mock_components, tmp_path):
+        from datetime import datetime
+        
+        config, db, email, excel, ftp = mock_components
+        db.check_data_exists.return_value = (True, 100)
+        db.execute_query.return_value = [(1, 'Test', 100.50)]
+        
+        processor = ReportProcessor(config, db, email, excel, ftp)
+        output = tmp_path / "report.xlsx"
+        date = datetime(2025, 1, 15)
+        
+        result = processor.process(date, output)
+        
+        assert result.success is True
+        assert result.records_processed == 1
+        assert result.file_generated == output
+        email.notify_success.assert_called_once()
+    
+    def test_process_no_data(self, mock_components, tmp_path):
+        from datetime import datetime
+        
+        config, db, email, excel, ftp = mock_components
+        db.check_data_exists.return_value = (False, 0)
+        
+        processor = ReportProcessor(config, db, email, excel, ftp)
+        output = tmp_path / "report.xlsx"
+        date = datetime(2025, 1, 15)
+        
+        result = processor.process(date, output)
+        
+        assert result.success is False
+        assert result.records_processed == 0
+        assert result.error == "No data available"
+        email.notify_no_data.assert_called_once()
+    
+    def test_process_skip_email_and_ftp(self, mock_components, tmp_path):
+        from datetime import datetime
+        
+        config, db, email, excel, ftp = mock_components
+        db.check_data_exists.return_value = (True, 50)
+        db.execute_query.return_value = [(1, 'Test')]
+        
+        processor = ReportProcessor(config, db, email, excel, ftp)
+        output = tmp_path / "report.xlsx"
+        date = datetime(2025, 1, 15)
+        
+        result = processor.process(date, output, upload_ftp=False, send_email=False)
+        
+        assert result.success is True
+        email.notify_success.assert_not_called()

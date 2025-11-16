@@ -123,3 +123,75 @@ class ReportProcessor:
             
         except Exception as e:
             raise PipelineError(f"Report generation failed: {e}") from e
+
+    def process(
+        self,
+        date: datetime,
+        output_path: Path,
+        headers: Optional[List[str]] = None,
+        upload_ftp: bool = True,
+        send_email: bool = True
+    ) -> ProcessResult:
+        """
+        Execute complete report processing pipeline.
+        
+        Args:
+            date: Report date
+            output_path: Where to save report
+            headers: Optional Excel headers
+            upload_ftp: If True, upload to FTP
+            send_email: If True, send email notification
+            
+        Returns:
+            ProcessResult: Processing result with statistics
+        """
+        try:
+            # Check data exists
+            if not self.check_data_exists(date):
+                if send_email and not self.dry_run:
+                    self.email.notify_no_data(date)
+                return ProcessResult(
+                    success=False,
+                    records_processed=0,
+                    error="No data available"
+                )
+            
+            # Generate report
+            count = self.generate_report(date, output_path, headers)
+            
+            if count == 0:
+                return ProcessResult(
+                    success=False,
+                    records_processed=0,
+                    error="No records generated"
+                )
+            
+            # Upload to FTP
+            if upload_ftp and self.ftp and not self.dry_run:
+                try:
+                    with self.ftp as ftp_conn:
+                        ftp_conn.upload_file(output_path)
+                except Exception as e:
+                    # Continue even if FTP fails
+                    pass
+            
+            # Send success email
+            if send_email and not self.dry_run:
+                self.email.notify_success(date, output_path)
+            
+            return ProcessResult(
+                success=True,
+                records_processed=count,
+                file_generated=output_path
+            )
+            
+        except Exception as e:
+            # Send error email
+            if send_email and not self.dry_run:
+                self.email.notify_error(e, date)
+            
+            return ProcessResult(
+                success=False,
+                records_processed=0,
+                error=str(e)
+            )
